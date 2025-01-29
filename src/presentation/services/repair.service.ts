@@ -1,15 +1,25 @@
 import { Repair } from '../../data/postgres/models/repair.model';
 import { StatusOfRepair } from '../../data/postgres/models/repair.model';
 import { CreateRepairDTO, CustomError } from '../../domain';
+import { In } from 'typeorm';
 
 export class RepairService {
-	constructor() {}
-
 	async findAllRepairs() {
 		try {
 			return await Repair.find({
 				where: {
-					status: StatusOfRepair.Pending,
+					status: In([StatusOfRepair.Pending, StatusOfRepair.Completed]),
+				},
+				relations: {
+					user: true,
+				},
+				select: {
+					user: {
+						id: true,
+						name: true,
+						email: true,
+						role: true,
+					},
 				},
 			});
 		} catch (error) {
@@ -43,6 +53,7 @@ export class RepairService {
 		try {
 			return await repair.save();
 		} catch (error) {
+			console.log(error);
 			throw CustomError.internalServer('Error creating repair');
 		}
 	}
